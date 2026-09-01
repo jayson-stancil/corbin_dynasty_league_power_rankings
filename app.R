@@ -75,6 +75,22 @@ files[grepl("\\.csv$", files)]
 
 # ---- UI ---------------------------------------------------------------------
 ui <- fluidPage(
+# Rankings tab only: the gt table has 10 columns (avatars, team, owner,
+# rating, etc.) and doesn't reflow on its own. Wrapping it lets it scroll
+# horizontally on its own instead of breaking the whole page layout on a
+# narrow screen, and the media query shrinks font/padding/avatar size on
+# phone-width viewports so more of it is readable without scrolling at all.
+# Scoped to .rank-table-wrap only -- does not touch build_graphic()'s
+# gtsave() output (the static PNG/PDF), which is unaffected by app CSS.
+tags$head(tags$style(HTML(paste(
+".rank-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }",
+"@media (max-width: 600px) {",
+".rank-table-wrap .gt_table { font-size: 11px !important; }",
+".rank-table-wrap .gt_table td, .rank-table-wrap .gt_table th { padding: 3px 4px !important; }",
+".rank-table-wrap .gt_table img { height: 20px !important; width: auto !important; }",
+"}",
+sep = "\n"
+)))),
 titlePanel("Sleeper Power Rankings"),
 sidebarLayout(
 sidebarPanel(
@@ -91,7 +107,7 @@ mainPanel(
 width = 9,
 tabsetPanel(
 id = "main_tabs",
-tabPanel("Rankings", gt_output("rank_table")),
+tabPanel("Rankings", div(class = "rank-table-wrap", gt_output("rank_table"))),
 tabPanel("League Stats",
 selectInput("stats_view", "View:",
 choices = c("Summary", "Points For",
