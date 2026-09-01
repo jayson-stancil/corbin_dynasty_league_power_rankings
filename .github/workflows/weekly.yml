@@ -1,0 +1,62 @@
+name: Weekly power rankings
+
+on:
+  schedule:
+    - cron: "0 11 * * 2"   # Tuesdays 11:00 UTC = 6:00 AM ET
+  workflow_dispatch:        # manual trigger from the Actions tab
+
+permissions:
+  contents: write
+
+env:
+  # Fixed, known path for nflreadr's filesystem cache (see R/simulate.R),
+  # so the cache step below and rappdirs::user_cache_dir() always agree.
+  R_USER_CACHE_DIR: /home/runner/.cache/nflreadr-cache
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      # Persists downloaded nflverse historical data (base_seasons 2012:2020,
+      # used by ffsimulator) across weekly runs. Key has no run-specific
+      # suffix so it's reused every week; nflreadr's own 24h memoise timeout
+      # handles staleness within a run, restore-keys handles a cold start.
+      - name: Cache nflreadr data
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.R_USER_CACHE_DIR }}
+          key: nflreadr-cache-${{ runner.os }}-v1
+          restore-keys: |
+            nflreadr-cache-${{ runner.os }}-
+
+      # ffsimulator's Rglpk dependency dynamically loads libglpk at runtime;
+      # it isn't on the plain ubuntu-latest image, so without this the
+      # simulation step fails with "unable to load shared object ...
+      # libglpk.so.40: cannot open shared object file".
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libglpk-dev
+
+      # ffscrapr/ffsimulator are on CRAN but the public RSPM binary mirror
+      # (use-public-rspm above) doesn't reliably carry pre-built binaries for
+      # them, so plain install.packages() silently fails to install them
+      # (a warning, not an error -- the step still reports success) and
+      # write_ff_simulation() then skips with "Missing packages: ffsimulator".
+      # Adding ffverse's own r-universe repo as a fallback source fixes this
+      # -- see https://ffscrapr.ffverse.com (Installation: R-universe).
+      - name: Install R packages
+        run: Rscript -e 'install.packages(c("jsonlite", "PlayerRatings", "gt", "webshot2", "ffscrapr", "ffsimulator"), repos = c("https://ffverse.r-universe.dev", getOption("repos")))'
+
+      - name: Run power rankings pipeline
+        run: Rscript run_all.R
+
+      - name: Commit updated data
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Weekly power rankings update [automated]"
+          file_pattern: "data/**"
