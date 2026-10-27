@@ -153,7 +153,7 @@ tags$head(tags$style(HTML(paste(
 "}",
 sep = "\n"
 )))),
-titlePanel("Sleeper Power Rankings"),
+titlePanel("Corbin Dynasty League"),
 sidebarLayout(
 sidebarPanel(
 width = 3,
