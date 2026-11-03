@@ -34,7 +34,7 @@ This repo mirrors the structure of `sleeper-power-rankings` (ADG Redraft) and
 
 ## Updating the preseason ranking each season
 
-`leagues/corbin_dynasty_2026.R` uses `roster_score_source = "manual"` with a
+`leagues/corbin_dynasty_2026.R` uses a manual
 `roster_scores` vector derived from a preseason power ranking (owner-supplied
 Borda voting scores, or a plain 1-12 rank, 1 = best).
 

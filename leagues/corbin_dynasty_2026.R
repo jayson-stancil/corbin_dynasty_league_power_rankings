@@ -10,14 +10,9 @@ list(
     season_label = "2026-2027",
     data_dir     = "data/corbin_dynasty",
 
-    # Preseason/roster strength scoring, used for (a) Glicko-2 initial ratings
-    # and (b) the ROST SCORE column in League Stats > Summary.
-    #   "fantasycalc" - computed live each run: sums FantasyCalc player values
-    #                   (see is_dynasty/ppr below) per Sleeper roster, then
-    #                   ranks teams 1-12 (1 = strongest roster).
-    #   "manual"      - uses the roster_scores vector below instead.
-    #   NULL          - disabled; all teams start at 1500, ROST SCORE hidden.
-    roster_score_source = "manual",
+    # Glicko-2 initial ratings and the ROST SCORE column in League Stats >
+    # Summary both come from the manual roster_scores vector below. Set
+    # roster_scores = NULL to start every team at 1500 and hide ROST SCORE.
     is_dynasty = TRUE,   # dynasty rosters carry over; FALSE = redraft values
     ppr        = 1,      # matches this league's full-PPR scoring
 
@@ -26,10 +21,9 @@ list(
     # app); set FALSE to skip it entirely for this league.
     enable_simulation = TRUE,
     sim_n_seasons = 250,  # more = smoother odds, slower CI run
-    sim_n_weeks   = 14,   # matches this league's regular-season length (playoffs start week 15)
+    sim_n_weeks   = 14,   # fallback only; season length is read from Sleeper
 
-    # Manual preseason roster power ranking, only used because
-    # roster_score_source == "manual" above. Owner supplied Borda voting
+    # Manual preseason roster power ranking. Owner supplied Borda voting
     # scores (higher = stronger, no ties); converted here to rank order and
     # then to a 1-12 "higher = stronger" score (13 - rank), ordered by
     # roster_id 1-12 (PlayerRatings::glicko2 z-scores this vector to seed
