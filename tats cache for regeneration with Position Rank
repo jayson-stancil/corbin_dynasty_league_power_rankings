@@ -1,0 +1,30 @@
+[33mcommit ff346bfeb7345d0c9ea5cf1c8d982c20844659cd[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Claude <noreply@anthropic.com>
+Date:   Tue Nov 10 15:44:54 2026 +0000
+
+    Add Position Rank column; fix PPG to use nflverse games-played
+    
+    Position Rank: "<rank by Total Points> (<rank by PPG>)" among
+    same-position players for that season, 1 = best, shown on each player
+    card's Fantasy Stats by Year table. Computed from the player's
+    combined full-season total (not a partial-stint total), so a player
+    traded mid-season shows the same rank on both of that season's rows.
+    
+    Also folds in the PPG fix: Sleeper's weekly matchup data has no
+    reliable "did not play" signal -- a bye week or an injury-missed game
+    still shows up as 0 points for a rostered player, same as a
+    played-but-scoreless game. fetch_nflverse_played_weeks() now
+    cross-references each player's Sleeper ID against nflverse's official
+    box-score stats (via nflreadr::load_ff_playerids() + load_player_stats(),
+    both already project dependencies through ffscrapr/ffsimulator) to
+    count true games played instead. Total Points is unchanged -- still
+    summed from Sleeper's own league-scored weekly totals. Players
+    nflverse doesn't track individually (team DEF, or any unmapped ID)
+    fall back to the previous nonzero-points heuristic.
+    
+    Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+    Claude-Session: https://claude.ai/code/session_017Z5maPPMEBu6uYV5Lyv1CE
+
+ R/engine.R | 103 [32m++++++++++++++++++++++++++++++++++++++++++++++++++++++++[m[31m-----[m
+ app.R      |   6 [32m++[m[31m--[m
+ 2 files changed, 99 insertions(+), 10 deletions(-)
